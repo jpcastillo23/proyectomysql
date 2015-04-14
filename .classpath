@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry excluding="PRUEBAS_ANTLR_MISQLGRAMMAR/" kind="src" path="src"/>
+	<classpathentry kind="src" path="MyDB"/>
+	<classpathentry kind="src" path="target/generated-sources/antlr4"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
+	<classpathentry exported="true" kind="lib" path="antlr-4.5-complete.jar"/>
+	<classpathentry exported="true" kind="var" path="json"/>
+	<classpathentry exported="true" kind="lib" path="json-lib-2.4-jdk15.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
