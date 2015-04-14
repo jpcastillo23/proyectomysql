@@ -2,8 +2,6 @@ import java.awt.List;
 import java.util.Arrays;
 import java.util.*;
 
-
-
 public class Mis_pruebas_Jp {
 
 	private static Mitable adios,prueb;

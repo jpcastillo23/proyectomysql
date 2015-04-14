@@ -22,12 +22,12 @@ public class Misqlobject implements Comparable<Misqlobject>, InterfazPila<Misqlo
 
     public Misqlobject(Object v) {
         if(v == null) {
-            throw new RuntimeException("v == null");
+            //throw new RuntimeException("v == null");
         }
         value = v;
         // only accept boolean, list, number or string types
-        if(!(isBoolean() || isList() || isNumber() || isString() || isStack() || isDate() || isCalendar())) {
-            throw new RuntimeException("invalid data type: " + v + " (" + v.getClass() + ")");
+        if(!(isNull() || isBoolean() || isList() || isNumber() || isString() || isStack() || isDate() || isCalendar())) {
+            //throw new RuntimeException("invalid data type: " + v + " (" + v.getClass() + ")");
         }
     }
     public String retornoTipoObjeto(){
@@ -39,14 +39,16 @@ public class Misqlobject implements Comparable<Misqlobject>, InterfazPila<Misqlo
     			return "integer";
     		}else if(isFloat()){
     			return "float";
-    		}else if(isStack()){
-    			return "stack";
     		}else if(isDate()){
     			return "date";
     		}else if(isCalendar()){
     			return "calendar";
     		}else if(isString()){
     			return "string";
+    		}else if(isNull()){
+    			return "null";
+    		}else if(isStack()){
+    			return "stack";
     		}else{
     			return "null";
     		}
@@ -164,7 +166,7 @@ public class Misqlobject implements Comparable<Misqlobject>, InterfazPila<Misqlo
     public int hashCode() {
         return value.hashCode();
     }
-
+    
     public boolean isDate(){
     		return value instanceof Date;
     }
@@ -186,7 +188,7 @@ public class Misqlobject implements Comparable<Misqlobject>, InterfazPila<Misqlo
     }
 
     public boolean isNull() {
-        return this == NULL;
+        return (this == NULL) ? true : false;
     }
 
     public boolean isVoid() {

@@ -7,8 +7,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.*;
 
-
-
 public class Mipropiovisitor extends MISQLGRAMMARBaseVisitor<Misqlobject> {
 	 
 	public int watch_dog_process_count=0;
@@ -30,6 +28,10 @@ public class Mipropiovisitor extends MISQLGRAMMARBaseVisitor<Misqlobject> {
 		System.out.println("3 visitCreate_table_stmt");
 		return visitChildren(ctx);
 	}
+	
+	public void print(String valor){
+		System.out.println(valor);
+	}
 
 	/**
 	 * CREACION DE BASES DE DATOS
@@ -38,13 +40,45 @@ public class Mipropiovisitor extends MISQLGRAMMARBaseVisitor<Misqlobject> {
 	public Misqlobject visitCreate_database_stmt(@NotNull MISQLGRAMMARParser.Create_database_stmtContext ctx) { 
 		System.out.println("4 visitCreate_database_stmt");
 		int cuantos_elementos_hay = ctx.getChildCount();
+		DLL_manager manejador = new DLL_manager();
+		boolean existe_en_archivo, existe_directorio;
 		Misqlobject[] nuevo ;
-		System.out.println("Cantidad de elementos:"+cuantos_elementos_hay+" y elementos: "+ ctx.getChild(2).getText());
+		//System.out.println("Cantidad de elementos:"+cuantos_elementos_hay+" y elementos: "+ ctx.getChild(2).getText());
 		//si son 3 objetos; sintaxis: CREATE DATABASE db_name
+		String nombre_data_base = visit(ctx.database_name()).asString() +".db";
+		//Si existe no creo ni la carpeta ni nuestro registro y escribo en ella la nueva 
+		// base  de datos
+		try{
+			if( ! manejador.existeRegistroDB()){
+				manejador.inicializarRegistroDB();
+				manejador.escribirenRegistroDB(nombre_data_base);
+			};
+		}catch(Exception e){
+			print("hola");
+		};
+		if(cuantos_elementos_hay==3){
+			existe_directorio= manejador.existe_Carpeta_base_datos(nombre_data_base);
+			existe_en_archivo= manejador.buscarTextoenArchivo(manejador.getcarpetaRootMYDBReg() , nombre_data_base)>0;
+				if( existe_directorio && existe_en_archivo ){
+					//no hay que  crear y/o modificar la tabla de direcciones
+				}else if(!existe_directorio){
+					//crear el directorio
+				}
+		};
+		
+		Misqlobject hola = new Misqlobject(visit( ctx.getChild(1) )) ;
+		
+		System.out.println( hola.isNull() + hola.retornoTipoObjeto() + " tiene tantos hijos " + cuantos_elementos_hay);
+		String hola1 = this.visit(ctx.database_name()).asString();
+		
+		//if(  )    ){
+			System.out.println("si tiene parametro database"+ hola1);
+		//};
+		/*
 		if (cuantos_elementos_hay == 3){
 			nuevo = new Misqlobject[1];
 			System.out.println("que tiene ------->: " + visit(ctx.getChild(2)));//+  visitChildren((RuleNode) ctx.getChild(2) ) );
-			nuevo[0] = this.visit(ctx.getChild(2));
+			nuevo[0] = this.visit(ctx'.getChild(2));
 			if ( nuevo[0].isString()){ System.out.println("Es un string"); };
 			System.out.println("Leyendo arregloMissqlobjects[]" + nuevo[0].toString());
 			//ESTA CREANDO Y/O SOBREESCRIBIENDO UNA DATA_BASE
@@ -54,7 +88,7 @@ public class Mipropiovisitor extends MISQLGRAMMARBaseVisitor<Misqlobject> {
 			//ESTA CREANDO Y/O SOBREESCRIBIENDO UNA DATA_BASE
 		};
 		Misqlobject nuevo2 = this.visit(ctx.getChild(0));
-		//nuevo2.
+		//nuevo2.*/
 		return visitChildren(ctx); 
 	}
 
@@ -575,18 +609,19 @@ public class Mipropiovisitor extends MISQLGRAMMARBaseVisitor<Misqlobject> {
 	public Misqlobject visitDatabase_name(@NotNull MISQLGRAMMARParser.Database_nameContext ctx) { 
 		System.out.println("68 visitDatabase_name");
 		String Mi_database_name = new String(ctx.getText());
-		System.out.println("68 " + Mi_database_name);
-
 		Misqlobject nuevo = new Misqlobject(Mi_database_name);
+
+		System.out.println("68 " + Mi_database_name +" " +nuevo.retornoTipoObjeto());
+
 		return nuevo;
 	}
  
 	@Override 
 	public Misqlobject visitColumn_name(@NotNull MISQLGRAMMARParser.Column_nameContext ctx) { 
 		System.out.println("69 visitColumn_name");
-		String Mi_database_name = new String(ctx.getText());
-		System.out.println("69 "+ Mi_database_name );
-		Misqlobject nuevo = new Misqlobject(Mi_database_name);
+		String Mi_column_name = new String(ctx.getText());
+		System.out.println("69 "+ Mi_column_name );
+		Misqlobject nuevo = new Misqlobject(Mi_column_name);
 		return nuevo;
 	}
  
