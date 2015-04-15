@@ -45,51 +45,41 @@ public class Mipropiovisitor extends MISQLGRAMMARBaseVisitor<Misqlobject> {
 		Misqlobject[] nuevo ;
 		//System.out.println("Cantidad de elementos:"+cuantos_elementos_hay+" y elementos: "+ ctx.getChild(2).getText());
 		//si son 3 objetos; sintaxis: CREATE DATABASE db_name
-		String nombre_data_base = visit(ctx.database_name()).asString() +".db";
+		String nombre_data_base = visit(ctx.database_name()).asString() ;
+		String archivodbname = nombre_data_base +".db";
+		Misqlobject retorno = new Misqlobject(nombre_data_base);
 		//Si existe no creo ni la carpeta ni nuestro registro y escribo en ella la nueva 
 		// base  de datos
-		try{
-			if( ! manejador.existeRegistroDB()){
+		try{     //REGISTRO DE BASE DE DATOS
+			System.out.println(manejador.existeRegistroDB());
+			if( !manejador.existeRegistroDB()){
 				manejador.inicializarRegistroDB();
-				manejador.escribirenRegistroDB(nombre_data_base);
+				manejador.escribirenRegistroDB(nombre_data_base+".db");
+				print("LOGRO CREAR EL REGISTRO DE DB");
 			};
 		}catch(Exception e){
 			print("hola");
-		};
+		};    
+		try{
 		if(cuantos_elementos_hay==3){
 			existe_directorio= manejador.existe_Carpeta_base_datos(nombre_data_base);
-			existe_en_archivo= manejador.buscarTextoenArchivo(manejador.getcarpetaRootMYDBReg() , nombre_data_base)>0;
+			existe_en_archivo= manejador.buscarTextoenArchivo(manejador.getcarpetaRootMYDBReg() , nombre_data_base+".db")>0;
 				if( existe_directorio && existe_en_archivo ){
-					//no hay que  crear y/o modificar la tabla de direcciones
-				}else if(!existe_directorio){
-					//crear el directorio
+					return retorno;  //no hay que  crear y/o modificar la tabla de direcciones
+				}else if(!existe_directorio && existe_en_archivo){
+					//crear el directorio SI NO EXISTE EL FOLDER DE LA BASE DE DATOS
+					manejador.CrearCarpeta_base_datos(nombre_data_base);
+					return retorno;
+				}else if(existe_directorio && !existe_en_archivo){
+					manejador.inicializarRegistroDB();
+					return retorno;
+				}else{
+					manejador.CrearCarpeta_base_datos(nombre_data_base);
+					manejador.inicializarRegistroDB();
 				}
 		};
-		
-		Misqlobject hola = new Misqlobject(visit( ctx.getChild(1) )) ;
-		
-		System.out.println( hola.isNull() + hola.retornoTipoObjeto() + " tiene tantos hijos " + cuantos_elementos_hay);
-		String hola1 = this.visit(ctx.database_name()).asString();
-		
-		//if(  )    ){
-			System.out.println("si tiene parametro database"+ hola1);
-		//};
-		/*
-		if (cuantos_elementos_hay == 3){
-			nuevo = new Misqlobject[1];
-			System.out.println("que tiene ------->: " + visit(ctx.getChild(2)));//+  visitChildren((RuleNode) ctx.getChild(2) ) );
-			nuevo[0] = this.visit(ctx'.getChild(2));
-			if ( nuevo[0].isString()){ System.out.println("Es un string"); };
-			System.out.println("Leyendo arregloMissqlobjects[]" + nuevo[0].toString());
-			//ESTA CREANDO Y/O SOBREESCRIBIENDO UNA DATA_BASE
-		}
-		// si son 6 objetos; sintaxis: CREATE DATABASE IF NOT EXIST db_name
-		else if (cuantos_elementos_hay == 6){
-			//ESTA CREANDO Y/O SOBREESCRIBIENDO UNA DATA_BASE
-		};
-		Misqlobject nuevo2 = this.visit(ctx.getChild(0));
-		//nuevo2.*/
-		return visitChildren(ctx); 
+		}catch (Exception e){ print("FUCK NO LOGRE ALMACENAR NADA");};
+		return retorno; 
 	}
 
 	@Override 

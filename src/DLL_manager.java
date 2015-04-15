@@ -1,10 +1,6 @@
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 public class DLL_manager {
@@ -15,6 +11,7 @@ public class DLL_manager {
 	
 	public DLL_manager(){
 		instance_date = Calendar.getInstance();
+		separatorOSDirectory();
 	}
 	//CREAR CARPETAROOT DE LAS BASES DE DATOS
 	public boolean compileMYDBFolder(){
@@ -46,14 +43,16 @@ public class DLL_manager {
 		return false;
 	}
 	public boolean writeInFileFila(String archivo, Object linea) {
-		   FileWriter fw = null;
+		File prueba = new File(archivo)   ;
+		FileWriter fw = null;
+		   BufferedWriter bw = null;
 			try {
-				fw = new FileWriter(archivo);
+				fw = new FileWriter(prueba);
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-		   BufferedWriter bw = new BufferedWriter(fw);
+			bw = new BufferedWriter(fw);
 		   try{
 		    		bw.append(linea.toString());
 		    		bw.close();
@@ -76,6 +75,7 @@ public class DLL_manager {
 		BufferedReader bw = null;
 		BufferedReaderIterable bri = null;
 		try {
+			System.out.println(archivo);
 			fw = new FileReader(archivo);
 			bw = new BufferedReader( fw);
 			bri = new BufferedReaderIterable( bw );
@@ -97,10 +97,12 @@ public class DLL_manager {
 	    }
 		return numero;
 	}
-	//Devuelve la carpeta root de db_registry.reg
+	//Devuelve la carpeta root de db_registry.txt
 	public String getcarpetaRootMYDBReg(){
 		String separador = separatorOSDirectory();
-		return new String(dir + separador +"MyDB"+ separador + "db_registry.reg");
+		String envio = dir + separador +"MyDB"+ separador + "db_registry.txt" ;
+		System.out.println(envio);
+		return envio;
 	}
 	//DEVUELVE EL FORMATO DE SEPARADORES DEPENDIENDO EL SISTEM_OPERATIVO
 	public String separatorOSDirectory(){
@@ -117,8 +119,16 @@ public class DLL_manager {
 	}
 	//Elimina y vuelve a crear el directorio
 	public void inicializarRegistroDB() throws Exception{
-		String a_enviar_vacio = "";
-		writeInFileFila(getcarpetaRootMYDBReg(),a_enviar_vacio);
+		String a_enviar_vacio = " ";
+		File folder =null;
+		try{
+			folder = new File(getcarpetaRootMYDBReg());
+		}catch(Exception h){ System.out.println("puchica");};
+		folder.createNewFile();
+		folder.canRead();
+		System.out.println( folder.canRead() + " Se puede leer y escribir" + folder.canWrite() );
+		System.out.println( "debugeando");
+		writeInFileFila(getcarpetaRootMYDBReg(),a_enviar_vacio) ;
 	}
 	public boolean existeRegistroDB(){
 		File folder = new File(getcarpetaRootMYDBReg());
@@ -135,7 +145,7 @@ public class DLL_manager {
 		File folder = new File(nueva_direccion);
 		return folder.exists();
 	}
-	public boolean Inicializar_Carpeta_base_datos(String Data_base_name){
+	public boolean CrearCarpeta_base_datos(String Data_base_name){
 		String separator = separatorOSDirectory();
 		String nueva_direccion = " ";
 		boolean efectuo_cambio = false;
@@ -144,22 +154,28 @@ public class DLL_manager {
 		if (folder.mkdirs()){ 		//crear nuevamente el directorio
 			efectuo_cambio=true;
 		}else{System.out.println("Base de Datos no ha sido Creado");};
-		return efectuo_cambio && Crear_directorio( getcarpetaRootMYDBReg() );		
+		return efectuo_cambio;		
+	}
+	public boolean Inicializar_Carpeta_base_datos(String Data_base_name){
+		return CrearCarpeta_base_datos(Data_base_name) && Crear_directorio( getcarpetaRootMYDBReg() );		
 	}
 	public boolean existDataBaseFile(String database_name){
 		String separator = separatorOSDirectory();
 		File folder = new File(dir + separator +"MyDB"+separator);
 		if (!folder.exists()){
-			System.out.println("System Error: No existe database.reg");
+			System.out.println("System Error: No existe database.txt");
 			return false;
 		};
 		return true;
 	}
-	public boolean Crear_Directorio_base_datos_if(String Data_base_name){
+	// MIRA SI EXISTE MYDB// 
+	//TAMBIEN CREA LA CONECCION SI NO HAY, 
+	//LUEGO ESCRIBE SOBRE EL REGISTRO, NO PREGUNTA SI EXISTE UNO
+	public boolean Crear_y_agragar_Directorio_base_datos_if(String Data_base_name){
 		String separator = separatorOSDirectory();
 		String nueva_direccion = " ";
 		List<String> mi_lista = new ArrayList<String>();
-		mi_lista.add(Data_base_name+","+ 0);
+		mi_lista.add(Data_base_name+".db ,"+ 0);
 		boolean efectuo_cambio = false;
 		nueva_direccion=dir + separator +"MyDB"+ separator + Data_base_name + separator;	
 		File folder = new File(nueva_direccion);
@@ -169,11 +185,11 @@ public class DLL_manager {
 			}else{
 				System.out.println("Base de Datos ha sido Creado");
 				try {
-					//crea la base de datos y tambien 
+					//crea la base de datos y tambien  REGISTRO
 					writeInFileFilas(getcarpetaRootMYDBReg(), mi_lista);
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
-					System.out.println("No se pudo crear el archivo en :"+getcarpetaRootMYDBReg() );
+					System.out.println("No se pudo crear el archivo REGISTRO en :"+getcarpetaRootMYDBReg() );
 					e.printStackTrace();
 				}
 				efectuo_cambio = true;

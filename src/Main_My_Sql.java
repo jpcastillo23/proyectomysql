@@ -16,7 +16,7 @@ public class Main_My_Sql {
     	parser**/
         Mipropiovisitor visitor = new Mipropiovisitor();  
         /*Luego le metemos nuestras nuevas restricciones de evaluación 
-    	  a nuestro parser. 										*/
+    	      a nuestro parser. 										*/
         visitor.visit(tree);
     }
 }
