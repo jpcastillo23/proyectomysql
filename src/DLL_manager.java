@@ -1,5 +1,3 @@
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.*;
 import java.util.*;
 
@@ -19,6 +17,11 @@ public class DLL_manager {
 		File filen = new File(dir + separador +"MyDB"+ separador);
 		return filen.mkdirs();
 	}
+	
+	public String getDir(){
+		return dir;
+	}
+	
 	//SOBRE LA UBICACION DEL ARCHIVO QUE INDIQUEMOS, ESCRIBIR LA LISTA DE OPCIONES
 	//ASUME QUE YA TIENEN CREADO EL ARCHIVO
 	public boolean writeInFileFilas(String archivo, List<String> lineas) {
@@ -125,17 +128,45 @@ public class DLL_manager {
 			folder = new File(getcarpetaRootMYDBReg());
 		}catch(Exception h){ System.out.println("puchica");};
 		folder.createNewFile();
-		folder.canRead();
-		System.out.println( folder.canRead() + " Se puede leer y escribir" + folder.canWrite() );
-		System.out.println( "debugeando");
 		writeInFileFila(getcarpetaRootMYDBReg(),a_enviar_vacio) ;
 	}
 	public boolean existeRegistroDB(){
 		File folder = new File(getcarpetaRootMYDBReg());
 		return folder.exists();
 	}
+	
 	public boolean escribirenRegistroDB(Object Data_name){
 		return 	writeInFileFila(getcarpetaRootMYDBReg(),(String)Data_name);
+	}
+	public boolean existe_Carpeta_registro_base_datos(String Data_base_name){
+		String separator = separatorOSDirectory();
+		String nueva_direccion = " ";
+		boolean efectuo_cambio = false;
+		nueva_direccion=dir + separator +"MyDB"+ separator + Data_base_name + separator+ Data_base_name+"reg.txt";
+		File folder = new File(nueva_direccion);
+		return folder.exists();
+	}
+	public boolean Crear_registro_tabla_y_base_datos(String Data_base_name){
+		String separator = separatorOSDirectory();
+		String nueva_direccion = " ";
+		boolean efectuo_cambio = false;
+		nueva_direccion=dir + separator +"MyDB"+ separator + Data_base_name + separator+ Data_base_name+"reg.txt";
+		File folder = new File(nueva_direccion);
+		try {
+			folder.createNewFile();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return folder.exists();
+	}
+	public boolean Ingresar_registro_base_datos_individual(String Data_base_name, String tabla_ingresada){
+		String separator = separatorOSDirectory();
+		String nueva_direccion = " ";
+		boolean efectuo_cambio = false;
+		nueva_direccion=dir + separator +"MyDB"+ separator + Data_base_name + separator+ Data_base_name+"reg.txt";
+		File folder = new File(nueva_direccion);
+		return writeInFileFila(nueva_direccion, tabla_ingresada );
 	}
 	public boolean existe_Carpeta_base_datos(String Data_base_name){
 		String separator = separatorOSDirectory();
@@ -214,4 +245,11 @@ public class DLL_manager {
 		return (OS.indexOf("sunos") >= 0);
 	}
 	
+	public boolean databaseIsInUse(){
+		return true;
+	}
+	
+	public void DropDatabasefromfileorarchive(String dababase){
+		
+	}
 }

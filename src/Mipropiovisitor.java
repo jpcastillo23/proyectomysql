@@ -3,13 +3,13 @@ import org.antlr.v4.runtime.tree.RuleNode;
 
 import java.io.File;
 import java.net.InetAddress; //esto es por si quiero generar translado VIA IP (como extra... talvez despeus)
-import java.util.Calendar;
-import java.util.Date;
 import java.util.*;
 
 public class Mipropiovisitor extends MISQLGRAMMARBaseVisitor<Misqlobject> {
 	 
 	public int watch_dog_process_count=0;
+	public List<String> using_Databases = new ArrayList<String>();
+	public ArrayList<Tipodato> usingTablesDatabases = new ArrayList<Tipodato>();
 	
 	@Override
 	public Misqlobject visitSql_stmt_list(@NotNull MISQLGRAMMARParser.Sql_stmt_listContext ctx) { 
@@ -55,7 +55,9 @@ public class Mipropiovisitor extends MISQLGRAMMARBaseVisitor<Misqlobject> {
 			if( !manejador.existeRegistroDB()){
 				manejador.inicializarRegistroDB();
 				manejador.escribirenRegistroDB(nombre_data_base+".db");
-				print("LOGRO CREAR EL REGISTRO DE DB");
+			};
+			if( !manejador.existe_Carpeta_registro_base_datos(nombre_data_base)){
+				manejador.Crear_registro_tabla_y_base_datos(nombre_data_base);
 			};
 		}catch(Exception e){
 			print("hola");
@@ -303,7 +305,19 @@ public class Mipropiovisitor extends MISQLGRAMMARBaseVisitor<Misqlobject> {
 	@Override 
 	public Misqlobject visitPrimary_sintax(@NotNull MISQLGRAMMARParser.Primary_sintaxContext ctx) { 
 		System.out.println("27 visitPrimary_sintax");
-
+		DLL_manager manejador = new DLL_manager();
+		//creacion de la carpeta de MYDB
+		if( !manejador.existeRegistroDB()){
+			try {
+				manejador.inicializarRegistroDB();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			print("LOGRO CREAR EL REGISTRO DE DB");
+		};
+		//EVALUACION DE TABLAS EN USO Y BASES DE DATOS EN USO
+		
 		return visitChildren(ctx);
 	}
  
