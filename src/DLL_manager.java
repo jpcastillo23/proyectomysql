@@ -1,5 +1,9 @@
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
+
+import static java.nio.file.StandardCopyOption.*;
 
 public class DLL_manager {
 	
@@ -16,10 +20,6 @@ public class DLL_manager {
 		String separador = separatorOSDirectory();
 		File filen = new File(dir + separador +"MyDB"+ separador);
 		return filen.mkdirs();
-	}
-	
-	public String getDir(){
-		return dir;
 	}
 	
 	//SOBRE LA UBICACION DEL ARCHIVO QUE INDIQUEMOS, ESCRIBIR LA LISTA DE OPCIONES
@@ -57,29 +57,33 @@ public class DLL_manager {
 			}
 			bw = new BufferedWriter(fw);
 		   try{
-		    		bw.append(linea.toString());
+		    		bw.append(linea.toString()+"");
+		    		bw.append(" ");
 		    		bw.close();
 	    		    fw.close();
 	    		    return true;
 		    }catch(Exception e){
 		    		System.out.println("No se pudo imprimir");
 		    }
+		   System.out.println("LA FUNCION writeInFileFila  no ejecuto bien");
 			return false;
 		}
+	//public boolean existInFileFila(String archivo, Object linea){}
 	//CREAR NUESTRO REGISTRO DE BASES DE DATOS ACTIVAS Y GUARDADAS
-	public boolean Crear_directorio(String donde){
+	
+	public boolean Crear_directorio (String donde){
 		File filen = new File(donde);
 		return filen.mkdirs();
 	}
 	//devuelve un numero negativo si no encuentra el arvhico
 	public int buscarTextoenArchivo(String archivo, String palabra){
 		int numero = -1;
+		File folder = new File(archivo);
 		FileReader fw = null;
 		BufferedReader bw = null;
 		BufferedReaderIterable bri = null;
 		try {
-			System.out.println(archivo);
-			fw = new FileReader(archivo);
+			fw = new FileReader(folder);
 			bw = new BufferedReader( fw);
 			bri = new BufferedReaderIterable( bw );
 		} catch (FileNotFoundException e1) {
@@ -88,13 +92,13 @@ public class DLL_manager {
 		}
 	   try{
 	    		for ( String leyendo_linea : bri ){
-	    			if(palabra.toLowerCase().contains(palabra.toLowerCase())){
+	    			if(leyendo_linea.toLowerCase().contains(palabra.toLowerCase())){
+	    				System.out.println(leyendo_linea +" " +leyendo_linea + " "+ leyendo_linea+" ");
 	    				numero = numero +2 ;
 	    			};
 	    		}
 	    		bw.close();
     		    fw.close();
-    		    return numero;
 	    }catch(Exception e){
 	    		System.out.println("No se pudo imprimir");
 	    }
@@ -104,8 +108,14 @@ public class DLL_manager {
 	public String getcarpetaRootMYDBReg(){
 		String separador = separatorOSDirectory();
 		String envio = dir + separador +"MyDB"+ separador + "db_registry.txt" ;
-		System.out.println(envio);
 		return envio;
+	}
+	public String getDireccionMYDB(){
+		return dir + File.separator +"MyDB"+ File.separator + "";
+	}
+
+	public String getDir(){
+		return dir;
 	}
 	//DEVUELVE EL FORMATO DE SEPARADORES DEPENDIENDO EL SISTEM_OPERATIVO
 	public String separatorOSDirectory(){
@@ -121,14 +131,23 @@ public class DLL_manager {
 		return separator;
 	}
 	//Elimina y vuelve a crear el directorio
-	public void inicializarRegistroDB() throws Exception{
-		String a_enviar_vacio = " ";
+	public void inicializar_RegistroDBcarpeta() throws Exception{
 		File folder =null;
 		try{
 			folder = new File(getcarpetaRootMYDBReg());
-		}catch(Exception h){ System.out.println("puchica");};
+		}catch(Exception h){ System.out.println("puchica nose creo");};
+		folder.mkdirs();
+		//folder.createNewFile();
+	}
+
+	public void inicializarRegistroDB() throws Exception{
+		File folder =null;
+		try{
+			folder = new File(getcarpetaRootMYDBReg());
+		}catch(Exception h){ System.out.println("puchica nose creo");};
+		//folder.mkdirs();
 		folder.createNewFile();
-		writeInFileFila(getcarpetaRootMYDBReg(),a_enviar_vacio) ;
+		writeInFileFila(getcarpetaRootMYDBReg()," ") ;
 	}
 	public boolean existeRegistroDB(){
 		File folder = new File(getcarpetaRootMYDBReg());
@@ -136,7 +155,7 @@ public class DLL_manager {
 	}
 	
 	public boolean escribirenRegistroDB(Object Data_name){
-		return 	writeInFileFila(getcarpetaRootMYDBReg(),(String)Data_name);
+		return 	Anadir_fila_fichero(getcarpetaRootMYDBReg(),(String)Data_name);
 	}
 	public boolean existe_Carpeta_registro_base_datos(String Data_base_name){
 		String separator = separatorOSDirectory();
@@ -150,12 +169,16 @@ public class DLL_manager {
 		String separator = separatorOSDirectory();
 		String nueva_direccion = " ";
 		boolean efectuo_cambio = false;
-		nueva_direccion=dir + separator +"MyDB"+ separator + Data_base_name + separator+ Data_base_name+"reg.txt";
+		nueva_direccion = dir + separator +"MyDB"+ separator + Data_base_name + separator+ Data_base_name+"reg.txt";
+		String nueva_direccion_folder =dir + separator +"MyDB"+ separator + Data_base_name + separator;
 		File folder = new File(nueva_direccion);
+		File folder_ante = new File(nueva_direccion_folder);
 		try {
+			folder_ante.mkdirs();
 			folder.createNewFile();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
+			folder.mkdirs();
 			e.printStackTrace();
 		}
 		return folder.exists();
@@ -166,7 +189,7 @@ public class DLL_manager {
 		boolean efectuo_cambio = false;
 		nueva_direccion=dir + separator +"MyDB"+ separator + Data_base_name + separator+ Data_base_name+"reg.txt";
 		File folder = new File(nueva_direccion);
-		return writeInFileFila(nueva_direccion, tabla_ingresada );
+		return Anadir_fila_fichero(nueva_direccion, tabla_ingresada );
 	}
 	public boolean existe_Carpeta_base_datos(String Data_base_name){
 		String separator = separatorOSDirectory();
@@ -182,7 +205,13 @@ public class DLL_manager {
 		boolean efectuo_cambio = false;
 		nueva_direccion=dir + separator +"MyDB"+ separator + Data_base_name + separator;
 		File folder = new File(nueva_direccion);
-		if (folder.mkdirs()){ 		//crear nuevamente el directorio
+		if (!folder.mkdirs()){ 		//crear nuevamente el directorio
+			try {
+				folder.createNewFile();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			efectuo_cambio=true;
 		}else{System.out.println("Base de Datos no ha sido Creado");};
 		return efectuo_cambio;		
@@ -250,6 +279,178 @@ public class DLL_manager {
 	}
 	
 	public void DropDatabasefromfileorarchive(String dababase){
-		
+		String separator = separatorOSDirectory();
+		String nueva_direccion = " ";
+		boolean efectuo_cambio = false;
+		nueva_direccion=dir + separator +"MyDB"+ separator + dababase + separator;	
+		File folder = new File(nueva_direccion);
+		folder.delete();
 	}
+	
+	public boolean isinDatabaseFichero(String direccion, String busqueda){
+		int e = buscarTextoenArchivo(direccion,busqueda);
+		return (e > 0) ? true : false;
+	}
+	public boolean eliminarFilaConParesDatabaseTable(String direccion, String busqueda,String busqueda2){
+		FileWriter fw = null;
+		FileReader fr = null;
+		String[] vacio = null;
+		File nuevo = null;
+		File viejo = null;
+		String tempo_direc = dir +File.separator+"MyDB"+File.separator+ "temp.txt";
+		System.out.println(tempo_direc);
+		boolean modificado = false;
+		System.out.println(tempo_direc);
+		try {
+			nuevo = new File(tempo_direc);
+			nuevo.createNewFile();
+			viejo = new File(direccion);
+
+			fw = new FileWriter(nuevo);
+			fr = new FileReader(viejo);
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	   BufferedWriter bw = new BufferedWriter(fw); //ESCRIBO
+	   BufferedReader br = new BufferedReader(fr); //LEO EL VIEJO
+	   BufferedReaderIterable padre_iterador = new BufferedReaderIterable(br) ;
+	   try{
+	    		for ( String fila : padre_iterador ){
+	    			vacio = fila.split(";");
+	    			if ( !(vacio[0].contains(busqueda)  && vacio[1].contains(busqueda2))){
+	    				bw.write(fila+"\n"); 
+	    			}
+	    		}
+	    		bw.close();
+    		    fw.close();
+    		    br.close();
+    		    fr.close();
+    		    Files.copy( nuevo.toPath()  , viejo.toPath() , REPLACE_EXISTING );
+    		    return true;
+	    }catch(Exception e){
+	    		System.out.println("No se pudo imprimir");
+	    }
+		return false;
+	}
+	
+	public boolean verificarFilaConParesDatabaseTable(String direccion, String busqueda,String busqueda2){
+		FileWriter fw = null;
+		FileReader fr = null;
+		String[] vacio = null;
+		File nuevo = null;
+		File viejo = null;
+		String tempo_direc = dir +File.separator+"MyDB"+File.separator+ "temp.txt";
+		System.out.println(tempo_direc);
+		boolean modificado = false;
+		System.out.println(tempo_direc);
+		try {
+			nuevo = new File(tempo_direc);
+			nuevo.createNewFile();
+			viejo = new File(direccion);
+
+			fw = new FileWriter(nuevo);
+			fr = new FileReader(viejo);
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	   BufferedWriter bw = new BufferedWriter(fw); //ESCRIBO
+	   BufferedReader br = new BufferedReader(fr); //LEO EL VIEJO
+	   BufferedReaderIterable padre_iterador = new BufferedReaderIterable(br) ;
+	   try{
+	    		for ( String fila : padre_iterador ){
+	    			vacio = fila.split(";");
+	    			if ( !(vacio[0].contains(busqueda)  && vacio[1].contains(busqueda2))){
+	    				bw.write(fila+"\n"); 
+	    				modificado = true;
+	    				
+	    			}
+	    		}
+	    		bw.close();
+    		    fw.close();
+    		    br.close();
+    		    fr.close();
+	    }catch(Exception e){
+	    		System.out.println("No se pudo imprimir");
+	    }
+		return modificado;
+	}
+
+	
+	public ArrayList listadodeDBenRegistro(String ubicacion){
+		FileReader fw = null;
+		ArrayList listadatabases = new ArrayList();
+		BufferedReader bw = null;
+		BufferedReaderIterable bri = null;
+		try {
+			System.out.println(ubicacion);
+			fw = new FileReader(ubicacion);
+			bw = new BufferedReader( fw);
+			bri = new BufferedReaderIterable( bw );
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	   try{
+	    		for ( String leyendo_linea : bri ){
+	    			listadatabases.add(leyendo_linea);
+	    		}
+	    		bw.close();
+    		    fw.close();
+	    }catch(Exception e){
+	    		System.out.println("No se pudo imprimir");
+	    }
+		return listadatabases;
+	}
+	/**
+	 * @parameter
+	 *     direccion: ubicacion de donde esta la ubicacion del texto a modificar
+	 *     busqueda
+	 * */
+	public boolean Anadir_fila_fichero(String direccion, String anidar){
+		
+		String tempo_direc = dir +File.separator+"MyDB"+File.separator+ "temp.txt";
+		File nuevo =  null;
+		FileWriter fw = null;
+		
+		
+		File viejo = new File(tempo_direc);
+		FileReader fr = null;
+		
+		String[] vacio = null;
+		
+		boolean modificado = false;
+		try {
+			
+			System.out.println(tempo_direc);
+			nuevo = new File(tempo_direc); //escribir en temporal NUEVO
+			viejo = new File(direccion);
+			if(!nuevo.exists()){
+				nuevo.createNewFile();
+			}
+			System.out.println(viejo.exists() + "" + nuevo.exists() + nuevo.getPath());
+			fr = new FileReader(viejo);			
+			fw = new FileWriter(nuevo);
+			
+		   BufferedWriter bw = new BufferedWriter(fw); //ESCRIBO
+		   BufferedReader br = new BufferedReader(fr); //LEO EL VIEJO
+		   BufferedReaderIterable padre_iterador = new BufferedReaderIterable(br) ;
+		   
+		   for ( String fila : padre_iterador ){
+			   bw.append(fila+"\n");
+   			}
+		    bw.append(anidar);
+	    		bw.close();
+    		    fw.close();
+    		    br.close();
+    		    fr.close();
+    		    Files.copy( nuevo.toPath()  , viejo.toPath() , REPLACE_EXISTING );
+    		    return true;
+	    }catch(Exception e){
+	    		System.out.println("No se pudo imprimir ");
+	    }
+		return false;
+	}
+
 }

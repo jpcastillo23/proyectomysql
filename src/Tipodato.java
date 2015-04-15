@@ -11,6 +11,7 @@ public class Tipodato<String, Misqlobject> implements java.io.Serializable, Comp
 	private Misqlobject value;
 	public Tipodato(){
 		this.value = null;
+		this.nombre_dato = null;
 	}
 	public Tipodato(String tipo, Misqlobject v){
 		this.nombre_dato = tipo;

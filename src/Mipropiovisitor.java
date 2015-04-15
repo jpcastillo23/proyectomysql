@@ -9,7 +9,9 @@ public class Mipropiovisitor extends MISQLGRAMMARBaseVisitor<Misqlobject> {
 	 
 	public int watch_dog_process_count=0;
 	public List<String> using_Databases = new ArrayList<String>();
+	//   SINTAXIS: <STRING DATABASES, STRING TABLE>
 	public ArrayList<Tipodato> usingTablesDatabases = new ArrayList<Tipodato>();
+	public HashMap<String,Tipodato> asStatementsaliases = new HashMap<String,Tipodato>();
 	
 	@Override
 	public Misqlobject visitSql_stmt_list(@NotNull MISQLGRAMMARParser.Sql_stmt_listContext ctx) { 
@@ -22,10 +24,46 @@ public class Mipropiovisitor extends MISQLGRAMMARBaseVisitor<Misqlobject> {
 		System.out.println("2 visitSql_stmt");
 		return visitChildren(ctx);
 	}	
-	
+	/**
+	 * 			CREACION DE NUEVA TABLA
+	 * su estructura es de la siguiente manera.
+	 * 		K_CREATE ( K_TEMP | K_TEMPORARY )? K_TABLE ( K_IF K_NOT K_EXISTS )?
+   			( database_name '.' )? table_name
+   			( '(' column_def ( ',' column_def )* ( ',' table_constraint )* ')' ( K_WITHOUT IDENTIFIER )? | K_AS select_stmt  ) 
+ 
+	 */
 	@Override 
 	public Misqlobject visitCreate_table_stmt(@NotNull MISQLGRAMMARParser.Create_table_stmtContext ctx) { 
 		System.out.println("3 visitCreate_table_stmt");
+		
+		int how_many = ctx.getChildCount();
+		
+		boolean posee_ya_archivo = false;
+		String data_Base_name = "";
+		ArrayList<String> listado_creado = new ArrayList<String>();
+		Misqlobject mi_objeto = new Misqlobject(visit(ctx.database_name()));
+		Misqlobject mi_objeto2 = new Misqlobject(visit(ctx.table_name() ));
+		System.out.println(mi_objeto +" en linea 46, Crate_table");
+		DLL_manager manejador = new DLL_manager();
+		//LISTADO_CREADO DA EL NOMBRE DE TODAS LAS BASES DE DATOS Y BUSCA EN CADA UNA
+		listado_creado = manejador.listadodeDBenRegistro( manejador.getcarpetaRootMYDBReg());
+		System.out.println(listado_creado);
+		System.out.println(listado_creado);
+		System.out.println("probando");
+		for(String archivo : listado_creado){  //estoy buscando el la captera de la DB la informaciond e sus tablas
+			//si busco en el texto ubicado en la carpeta de la DB fila por fila si posee la tabla que deseo crear
+			if((manejador.buscarTextoenArchivo(manejador.getDireccionMYDB()+File.separator+archivo.split(".")[0]+"reg.txt"  , mi_objeto2.asString()) >0)
+			  &&  true ){
+				posee_ya_archivo=true;	
+			}	
+		}
+		if(!posee_ya_archivo){
+			//si no posee el archivo procedo a crear la tabla
+			manejador.Anadir_fila_fichero(manejador.getDireccionMYDB()+File.separator+mi_objeto.asString() +"reg.txt" , mi_objeto2.asString());
+		}else{
+			System.out.println("No se puede crear tabla");
+		}
+		//getDireccionMYDB()
 		return visitChildren(ctx);
 	}
 	
@@ -35,51 +73,49 @@ public class Mipropiovisitor extends MISQLGRAMMARBaseVisitor<Misqlobject> {
 
 	/**
 	 * CREACION DE BASES DE DATOS
+	 * 
+	 * ESTRUCTURA   : K_CREATE K_DATABASE ( K_IF K_NOT K_EXISTS )?  database_name 
+	 * @return: retorna String con la direccion
 	 * */
 	@Override
 	public Misqlobject visitCreate_database_stmt(@NotNull MISQLGRAMMARParser.Create_database_stmtContext ctx) { 
+		
 		System.out.println("4 visitCreate_database_stmt");
 		int cuantos_elementos_hay = ctx.getChildCount();
 		DLL_manager manejador = new DLL_manager();
-		boolean existe_en_archivo, existe_directorio;
+		boolean existe_en_archivo, existe_directorio, prueba_sobreescritura1;
 		Misqlobject[] nuevo ;
-		//System.out.println("Cantidad de elementos:"+cuantos_elementos_hay+" y elementos: "+ ctx.getChild(2).getText());
-		//si son 3 objetos; sintaxis: CREATE DATABASE db_name
 		String nombre_data_base = visit(ctx.database_name()).asString() ;
 		String archivodbname = nombre_data_base +".db";
 		Misqlobject retorno = new Misqlobject(nombre_data_base);
+		System.out.println(retorno);
+		System.out.println("probando CREATE DATABASE");
+		String error = "ERROR";
+		
 		//Si existe no creo ni la carpeta ni nuestro registro y escribo en ella la nueva 
 		// base  de datos
+		
 		try{     //REGISTRO DE BASE DE DATOS
-			System.out.println(manejador.existeRegistroDB());
-			if( !manejador.existeRegistroDB()){
-				manejador.inicializarRegistroDB();
-				manejador.escribirenRegistroDB(nombre_data_base+".db");
+			System.out.println("acavpy " + retorno);
+			boolean prueba_sobreescritura = (manejador.isinDatabaseFichero(manejador.getcarpetaRootMYDBReg(),nombre_data_base));
+			if(prueba_sobreescritura){
+				//si encuentra esto es por que esta sobreescribiendo
+				System.out.println(error + " trato de sobre escritura");
+				return new Misqlobject(error);
 			};
-			if( !manejador.existe_Carpeta_registro_base_datos(nombre_data_base)){
-				manejador.Crear_registro_tabla_y_base_datos(nombre_data_base);
-			};
+
 		}catch(Exception e){
-			print("hola");
+			print("Error de manejo de backend");
 		};    
+		
 		try{
-		if(cuantos_elementos_hay==3){
-			existe_directorio= manejador.existe_Carpeta_base_datos(nombre_data_base);
-			existe_en_archivo= manejador.buscarTextoenArchivo(manejador.getcarpetaRootMYDBReg() , nombre_data_base+".db")>0;
-				if( existe_directorio && existe_en_archivo ){
-					return retorno;  //no hay que  crear y/o modificar la tabla de direcciones
-				}else if(!existe_directorio && existe_en_archivo){
-					//crear el directorio SI NO EXISTE EL FOLDER DE LA BASE DE DATOS
-					manejador.CrearCarpeta_base_datos(nombre_data_base);
-					return retorno;
-				}else if(existe_directorio && !existe_en_archivo){
-					manejador.inicializarRegistroDB();
-					return retorno;
-				}else{
-					manejador.CrearCarpeta_base_datos(nombre_data_base);
-					manejador.inicializarRegistroDB();
+			if(cuantos_elementos_hay==3){
+				manejador.CrearCarpeta_base_datos(nombre_data_base);
+				manejador.Crear_registro_tabla_y_base_datos(nombre_data_base);
+				manejador.Anadir_fila_fichero(manejador.getcarpetaRootMYDBReg(),nombre_data_base+".db");
+				return retorno;
+
 				}
-		};
 		}catch (Exception e){ print("FUCK NO LOGRE ALMACENAR NADA");};
 		return retorno; 
 	}
@@ -307,17 +343,16 @@ public class Mipropiovisitor extends MISQLGRAMMARBaseVisitor<Misqlobject> {
 		System.out.println("27 visitPrimary_sintax");
 		DLL_manager manejador = new DLL_manager();
 		//creacion de la carpeta de MYDB
-		if( !manejador.existeRegistroDB()){
-			try {
+		try{     //REGISTRO DE BASE DE DATOS
+			System.out.println("Existe Registro? " + manejador.existeRegistroDB());
+			if( !manejador.existeRegistroDB()){
+				System.out.println("Creando Registro de DB" );
+				//manejador.inicializar_RegistroDBcarpeta();
 				manejador.inicializarRegistroDB();
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			print("LOGRO CREAR EL REGISTRO DE DB");
-		};
-		//EVALUACION DE TABLAS EN USO Y BASES DE DATOS EN USO
-		
+			};
+		}catch(Exception e){
+			print("Error de manejo de backend");
+		};    		
 		return visitChildren(ctx);
 	}
  
@@ -331,7 +366,7 @@ public class Mipropiovisitor extends MISQLGRAMMARBaseVisitor<Misqlobject> {
 	@Override 
 	public Misqlobject visitAlter_table_stmt(@NotNull MISQLGRAMMARParser.Alter_table_stmtContext ctx) { 
 		System.out.println("29 visitAlter_table_stmt");
-
+		
 		return visitChildren(ctx);
 	}
  
@@ -540,6 +575,19 @@ public class Mipropiovisitor extends MISQLGRAMMARBaseVisitor<Misqlobject> {
 	@Override 
 	public Misqlobject visitDrop_table_stmt(@NotNull MISQLGRAMMARParser.Drop_table_stmtContext ctx) { 
 		System.out.println("56 visitDrop_table_stmt");
+		String data_base_name = visit( ctx.database_name() ).asString() ;
+		String table_base_name = visit( ctx.table_name() ).asString() ;
+
+		int i = using_Databases.size(); 
+		for ( Tipodato valor : usingTablesDatabases ){
+			if( ((String) valor.getString()).contains(table_base_name) &&  ((Misqlobject)valor.getValue()).asString().contains(data_base_name) ){
+				return new Misqlobject( false);
+			}
+			
+		}
+		print("TENGO PENDIENTE EL DROP");
+		//eliminarFilaConDatoDeUnDoc()
+		
 		return visitChildren(ctx);
 	}
  
