@@ -62,6 +62,7 @@ sql_stmt
                                       | delete_stmt
                                       | delete_stmt_limited
                                       | detach_stmt
+                                      | use_stmt
                                       | drop_index_stmt
                                       | drop_table_stmt
                                       | drop_trigger_stmt
@@ -110,6 +111,9 @@ compound_select_stmt
  ;
 create_database_stmt
  : K_CREATE K_DATABASE ( K_IF K_NOT K_EXISTS )?  database_name 
+ ;
+ use_stmt
+ : K_USE database_name
  ;
 create_index_stmt
  : K_CREATE K_UNIQUE? K_INDEX ( K_IF K_NOT K_EXISTS )?
@@ -506,6 +510,7 @@ keyword
  | K_CONSTRAINT
  | K_CREATE
  | K_CROSS
+ | K_USE
  | K_CURRENT_DATE
  | K_CURRENT_TIME
  | K_CURRENT_TIMESTAMP
@@ -829,6 +834,7 @@ K_UNION : 		'UNION';
 K_UNIQUE : 		'UNIQUE';
 K_UPDATE : 		'UPDATE';
 K_USING : 		'USING';
+K_USE	:		'USE';
 K_VACUUM : 		'VACUUM';
 K_VALUES :		'VALUES';
 K_VIEW : 		'VIEW';

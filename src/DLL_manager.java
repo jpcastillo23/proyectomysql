@@ -165,6 +165,11 @@ public class DLL_manager {
 		File folder = new File(nueva_direccion);
 		return folder.exists();
 	}
+	/**
+	 *   crear  user/netbeans/mysql/proyecto/myDB/database_NAMEreg.txt
+	 *   Y TAMBIEN
+	 *   		user/netbeans/mysql/proyecto/myDB/
+	 * */
 	public boolean Crear_registro_tabla_y_base_datos(String Data_base_name){
 		String separator = separatorOSDirectory();
 		String nueva_direccion = " ";
@@ -183,6 +188,12 @@ public class DLL_manager {
 		}
 		return folder.exists();
 	}
+	/**
+	 *   INGRESAR  
+	 *   		user/netbeans/mysql/proyecto/myDB/database_NAMEreg.txt
+	 *   Y TAMBIEN
+	 *   		[TABLE_NAME, INT COLUMNS, PRIMARY KEY]
+	 * */
 	public boolean Ingresar_registro_base_datos_individual(String Data_base_name, String tabla_ingresada){
 		String separator = separatorOSDirectory();
 		String nueva_direccion = " ";

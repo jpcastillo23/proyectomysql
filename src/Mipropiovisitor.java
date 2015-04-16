@@ -4,11 +4,17 @@ import org.antlr.v4.runtime.tree.RuleNode;
 import java.io.File;
 import java.net.InetAddress; //esto es por si quiero generar translado VIA IP (como extra... talvez despeus)
 import java.util.*;
-
+/**
+ * proyecto por JOSE PABLO CASTILLO RODAS
+ * UNIVERSIDAD DEL VALLE
+ * 
+ * SE UTILIZO ANTLR4 CONFIGURADO EN ECLIPSE
+ * */
 public class Mipropiovisitor extends MISQLGRAMMARBaseVisitor<Misqlobject> {
 	 
 	public int watch_dog_process_count=0;
 	public List<String> using_Databases = new ArrayList<String>();
+	public List<String> using_Tables = new ArrayList<String>();
 	//   SINTAXIS: <STRING DATABASES, STRING TABLE>
 	public ArrayList<Tipodato> usingTablesDatabases = new ArrayList<Tipodato>();
 	public HashMap<String,Tipodato> asStatementsaliases = new HashMap<String,Tipodato>();
@@ -16,55 +22,84 @@ public class Mipropiovisitor extends MISQLGRAMMARBaseVisitor<Misqlobject> {
 	@Override
 	public Misqlobject visitSql_stmt_list(@NotNull MISQLGRAMMARParser.Sql_stmt_listContext ctx) { 
 		System.out.println("1visitSql_stmt_list");
-		return visitChildren(ctx);
+		int cuantos = ctx.getChildCount();
+		Misqlobject iterable = null;
+		boolean continuar = true;
+		for(int i=0;i<cuantos;i++){
+			System.out.println(ctx.sql_stmt(i).getText());
+			iterable =  new Misqlobject(visit(ctx.sql_stmt(i)));
+			
+			System.out.println(iterable.retornoTipoObjeto());
+			continuar = iterable.asBoolean();
+			if (!continuar){
+				return new Misqlobject(false);
+			}
+		}
+		Misqlobject todoexitoso = new Misqlobject(true)   ;
+		return  todoexitoso;
 	}
 	
 	@Override 
 	public Misqlobject visitSql_stmt(@NotNull MISQLGRAMMARParser.Sql_stmtContext ctx) { 
 		System.out.println("2 visitSql_stmt");
-		return visitChildren(ctx);
+		Misqlobject boleano = new Misqlobject(true);
+		return boleano;
 	}	
 	/**
-	 * 			CREACION DE NUEVA TABLA
+	 * 	CREACION DE NUEVA TABLA
 	 * su estructura es de la siguiente manera.
 	 * 		K_CREATE ( K_TEMP | K_TEMPORARY )? K_TABLE ( K_IF K_NOT K_EXISTS )?
    			( database_name '.' )? table_name
    			( '(' column_def ( ',' column_def )* ( ',' table_constraint )* ')' ( K_WITHOUT IDENTIFIER )? | K_AS select_stmt  ) 
- 
+ 	 *
+ 	 *	nota: REALMENTE  DATABASES no tiene que formar parte de la sintaxis. se asume que
+ 	 *	estas usando una.
 	 */
 	@Override 
 	public Misqlobject visitCreate_table_stmt(@NotNull MISQLGRAMMARParser.Create_table_stmtContext ctx) { 
 		System.out.println("3 visitCreate_table_stmt");
-		
+		//verificacion si ya hay cargada una base_de_datos
+		if(using_Databases.isEmpty()){
+			return new Misqlobject(false);
+		}
 		int how_many = ctx.getChildCount();
-		
 		boolean posee_ya_archivo = false;
 		String data_Base_name = "";
-		ArrayList<String> listado_creado = new ArrayList<String>();
-		Misqlobject mi_objeto = new Misqlobject(visit(ctx.database_name()));
-		Misqlobject mi_objeto2 = new Misqlobject(visit(ctx.table_name() ));
-		System.out.println(mi_objeto +" en linea 46, Crate_table");
+		ArrayList<String> listado_db_creado = new ArrayList<String>();
+		System.out.println(ctx.database_name().getText());
+		if(ctx.database_name().getText()==null){
+			System.out.println("si funciona");
+		}
+		//Misqlobject mi_objeto  = new Misqlobject( visit(ctx.database_name()));//objeto string
+		Misqlobject mi_objeto2 = new Misqlobject( visit(ctx.table_name() ));//objeto string
+		System.out.println(mi_objeto2 +" en linea 46, Crate_table");
 		DLL_manager manejador = new DLL_manager();
+		//NECESITO UNA FUNCION QUE BUSQUE LAS BASES DDE DATOS Y PUEDA BUSCAR QUE ESTA
+		//EN USO SI EN TAL caso EL USUARIO NO COLOCA EL Database.table
 		//LISTADO_CREADO DA EL NOMBRE DE TODAS LAS BASES DE DATOS Y BUSCA EN CADA UNA
-		listado_creado = manejador.listadodeDBenRegistro( manejador.getcarpetaRootMYDBReg());
-		System.out.println(listado_creado);
-		System.out.println(listado_creado);
-		System.out.println("probando");
-		for(String archivo : listado_creado){  //estoy buscando el la captera de la DB la informaciond e sus tablas
+		listado_db_creado = manejador.listadodeDBenRegistro( manejador.getcarpetaRootMYDBReg());
+		//estoy buscando el la capteta de la DB la informaciond e sus tablas
+		posee_ya_archivo = (manejador.buscarTextoenArchivo(manejador.getDireccionMYDB()+using_Databases.get(0)+"reg.txt"  , mi_objeto2.asString()) >0);
+		if(posee_ya_archivo){
+			return new Misqlobject(false);
+		}
+		
+		/**for(String archivo : listado_db_creado){  
 			//si busco en el texto ubicado en la carpeta de la DB fila por fila si posee la tabla que deseo crear
-			if((manejador.buscarTextoenArchivo(manejador.getDireccionMYDB()+File.separator+archivo.split(".")[0]+"reg.txt"  , mi_objeto2.asString()) >0)
-			  &&  true ){
-				posee_ya_archivo=true;	
+			try{//                                                                                       /        DATABASE 			reg.txt		, 	
+				posee_ya_archivo = (manejador.buscarTextoenArchivo(manejador.getDireccionMYDB()+archivo.split(".")[0]+"reg.txt"  , mi_objeto2.asString()) >0);
+			if( posee_ya_archivo &&  true ){
+				//ya tenia la tabla en la database de datos, denegar!!!
+				System.out.println("LA TABLA YA EXISTE EN SU BASE DE DATOS");
+				return new Misqlobject(false);
+				}
+			}catch(Exception e){
+				System.out.println("Murio por que no puso database");
 			}	
-		}
-		if(!posee_ya_archivo){
-			//si no posee el archivo procedo a crear la tabla
-			manejador.Anadir_fila_fichero(manejador.getDireccionMYDB()+File.separator+mi_objeto.asString() +"reg.txt" , mi_objeto2.asString());
-		}else{
-			System.out.println("No se puede crear tabla");
-		}
+		}*/
+		manejador.Anadir_fila_fichero(manejador.getDireccionMYDB()+File.separator + using_Databases.get(0) +"reg.txt" , mi_objeto2.asString());
 		//getDireccionMYDB()
-		return visitChildren(ctx);
+		return new Misqlobject(true) ;
 	}
 	
 	public void print(String valor){
@@ -101,7 +136,7 @@ public class Mipropiovisitor extends MISQLGRAMMARBaseVisitor<Misqlobject> {
 			if(prueba_sobreescritura){
 				//si encuentra esto es por que esta sobreescribiendo
 				System.out.println(error + " trato de sobre escritura");
-				return new Misqlobject(error);
+				return new Misqlobject(false);
 			};
 
 		}catch(Exception e){
@@ -113,11 +148,11 @@ public class Mipropiovisitor extends MISQLGRAMMARBaseVisitor<Misqlobject> {
 				manejador.CrearCarpeta_base_datos(nombre_data_base);
 				manejador.Crear_registro_tabla_y_base_datos(nombre_data_base);
 				manejador.Anadir_fila_fichero(manejador.getcarpetaRootMYDBReg(),nombre_data_base+".db");
-				return retorno;
-
+				using_Databases.add(nombre_data_base);
+				return new Misqlobject(true);
 				}
 		}catch (Exception e){ print("FUCK NO LOGRE ALMACENAR NADA");};
-		return retorno; 
+		return new Misqlobject(true); 
 	}
 
 	@Override 
@@ -756,6 +791,8 @@ public class Mipropiovisitor extends MISQLGRAMMARBaseVisitor<Misqlobject> {
  * **/
 	@Override 
 	public Misqlobject visitAssustituteexpression(@NotNull MISQLGRAMMARParser.AssustituteexpressionContext ctx) { 
+		System.out.println("82 visitAssustituteexpression");
+
 		return visitChildren(ctx); 
 	}
  
@@ -861,5 +898,34 @@ public class Mipropiovisitor extends MISQLGRAMMARBaseVisitor<Misqlobject> {
 		return visitChildren(ctx); 
 	}
    
-	
+	@Override public Misqlobject visitUse_stmt(@NotNull MISQLGRAMMARParser.Use_stmtContext ctx) { 
+		System.out.println("881 visitUse_stmt");
+		Misqlobject nombredatabaseforusing = visit(ctx.database_name() );
+		Misqlobject retorno;
+		Misqlobject iterando;
+		//SI QUIERE USAR UNA TABLA, ELIMINA LA ACTUAL Y LUEGO COLOCA LA OTRA, PERO DEBE
+		//DE VER SI NO HAY TABLAS DE ESTA DATABASE EN FUNCIONAMIENTO.
+		
+		//VER SI NO ESTA EN USO LA QUE ESTOY UTLIZANDO
+		for( Tipodato iterable : usingTablesDatabases){
+			//string es table, el otro el Misqlobject y es 
+			iterando = ( Misqlobject )iterable.getValue() ;
+			if( nombredatabaseforusing.asString().compareTo(iterando.asString() )==0 ){
+				return new Misqlobject(false);
+				//no se pudo usar debido a que se encontro en los de uso
+			}
+		
+		}
+		//cada vez que es un nuevo set de instrucciones tiene que resetearse
+		if (using_Databases.size() >1){
+			using_Databases.clear();
+			using_Databases.add(nombredatabaseforusing.asString());		
+		}
+		retorno = new Misqlobject( ctx.database_name() );
+		return new Misqlobject(true); 
+	}
+	public void voyaUsarRecurso(String table, Object database){
+
+		usingTablesDatabases.add(new Tipodato(table,new Misqlobject(database)));
+	}
 }
