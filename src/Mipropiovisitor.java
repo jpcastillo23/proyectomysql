@@ -11,7 +11,10 @@ import java.util.*;
  * SE UTILIZO ANTLR4 CONFIGURADO EN ECLIPSE
  * */
 public class Mipropiovisitor extends MISQLGRAMMARBaseVisitor<Misqlobject> {
-	 
+	 /**
+	  * @variables :
+	  * 
+	  * */
 	public int watch_dog_process_count=0;
 	public List<String> using_Databases = new ArrayList<String>();
 	public List<String> using_Tables = new ArrayList<String>();
@@ -19,30 +22,69 @@ public class Mipropiovisitor extends MISQLGRAMMARBaseVisitor<Misqlobject> {
 	public ArrayList<Tipodato> usingTablesDatabases = new ArrayList<Tipodato>();
 	public HashMap<String,Tipodato> asStatementsaliases = new HashMap<String,Tipodato>();
 	
+	/**
+	 * @return Misqlobject as a list in case of much atention.
+	 *  EN CASO ME VUELVA UN EXPERTO EN ANTLR PODRÉ CREAR MI PROPIO
+	 *  VISITADOR Y SABER COMO QUIERO QUE RETORNEN MIS DATOS
+	@Override
+	public Misqlobject visitChildren(RuleNode ctx){
+		ArrayList se_pudo = new ArrayList();
+		for (int index = 0; index < ctx.getChildCount(); index++)  
+			se_pudo.addAll( (List)visit(ctx.getChild(index)));  
+		return Misqlobject;
+		
+	}
+	@Override  
+	 public List<E> visitTerminal(TerminalNode node) {  
+	  if (node.getSymbol().getType() == CSVLexer.NUMBER) {  
+	   int number = Integer.parseInt(node.getText());  
+	   return Arrays.asList(number);  
+	  } // */
 	@Override
 	public Misqlobject visitSql_stmt_list(@NotNull MISQLGRAMMARParser.Sql_stmt_listContext ctx) { 
-		System.out.println("1visitSql_stmt_list");
-		int cuantos = ctx.getChildCount();
+		System.out.println("1 visitSql_stmt_list");
+		int cuantos = ctx.getChildCount(); //estos incluyen la coma (imprimase para ver)
 		Misqlobject iterable = null;
 		boolean continuar = true;
-		for(int i=0;i<cuantos;i++){
+		for(int i=0;i<cuantos/2;i++){
+			/**
+			 * 
+			 * CONJUNTO DE IMPRESIONES PARA EVALUAR COMO SE DESGLOSA EL ARBOL
+			 * 
+			 * System.out.println(ctx.getChild(i*2).getText());
+			 * System.out.println(visit(ctx.getChild(i*2)));
+			 * 
+			**/
+			System.out.println(visit( ctx.getChild(i*2) )+" "+i);
+			/**
+			 *    pruebas de como se desglosan las intrucciones por ramificacion en 
+			 *    ANTLR4
+			System.out.println(ctx.getChildCount() +" " +ctx.getChild(0).getChildCount() +" \n");
+			System.out.println("\t \n"+ctx.getText() +" popo " +ctx.getChild(0).getText() +" ");
 			System.out.println(ctx.sql_stmt(i).getText());
-			iterable =  new Misqlobject(visit(ctx.sql_stmt(i)));
-			
+			//  
+			System.out.println("fucker " + cuantos);
+			iterable =  new Misqlobject(visitChildren(ctx.sql_stmt(i)));
 			System.out.println(iterable.retornoTipoObjeto());
+			System.out.println("fucker3");
 			continuar = iterable.asBoolean();
+			System.out.println("fucker2");
 			if (!continuar){
 				return new Misqlobject(false);
-			}
+			}*/
 		}
-		Misqlobject todoexitoso = new Misqlobject(true)   ;
-		return  todoexitoso;
+		Misqlobject todoexitoso = new Misqlobject(new Boolean(true))   ;
+		return  		todoexitoso;
 	}
 	
 	@Override 
 	public Misqlobject visitSql_stmt(@NotNull MISQLGRAMMARParser.Sql_stmtContext ctx) { 
 		System.out.println("2 visitSql_stmt");
-		Misqlobject boleano = new Misqlobject(true);
+		//visitChildren(ctx);   OJO CON ESTO, DEBE DE SER OBJETO BOOLEANNO MULA
+		Misqlobject luego = new Misqlobject( visitChildren(ctx) );
+		System.out.println(luego);
+		Misqlobject boleano = new Misqlobject(new Boolean( false));
+		//System.out.println(boleano.toString()+"PRUEBA");
 		return boleano;
 	}	
 	/**
